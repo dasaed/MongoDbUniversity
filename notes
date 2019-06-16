@@ -1,0 +1,373 @@
+# Starting the MongoDB Class, from MongoDB University.
+
+
+Connecting to a MongoDB Database is pretty easy with mongo db compass. You just have to fill in the fields from the login. 
+
+
+How to filter information - Basics
+
+{"filter": "example"}
+
+Side Note: JavaScript Object Notation (JSON)
+	* always start and end with {}
+	* JSON documents are composed of fields, which are composed of 2 values
+		* key and value
+		* Separated by a :
+	* The key must always be in quotations ( {"key": 123123} )
+
+Mongo DB generates the filters in a JSON style format. It requires you to select by which key do you want to filter, and the values from that filter that you want to see. It also allows you to have multiple queries at once, with range values, and your standard operations.
+For example, let's take a look at the following filter
+{'end station name': '8 Ave & W 33 St','birth year': {$gte: 1985,$lt: 1990}}
+{'key for filter 1': 'value we want', 'key for filter 2': {values greater than 1985, values less than 1990 } }
+$gte = Greater than or equal to 
+$lt = less than
+
+CRUD Operations
+Create
+Read
+Update
+Delete
+
+# The Mongo Compass
+
+# The Mongo Shell commands
+We downloaded a .js file containing movie information into a folder, and from there, we run the mongo shell to be able to upload the data:
+
+
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> load("loadMovieDetailsDataset.js")
+true
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> show dbs
+admin  0.000GB
+local  3.719GB
+video  0.000GB
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> use video 
+switched to db video
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> show collections
+movieDetails
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> db.movieDetails.find().pretty()    //shows the information in a "pretty" style
+
+# Some CRUD Operations from the Mongo Shell 
+
+* Adding a single record to a database
+
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> show dbs
+admin  0.000GB
+local  3.719GB
+video  0.001GB
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> use video
+switched to db video
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> show collections
+movieDetails
+movieScratch
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> db 
+video
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> db.movie
+db.movieDetails  db.movieScratch
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> db.movieScratch.insertOne({ title: "Star Trek II: The Wrath of Khan", year: 1982, imdb:"tt0084726"})
+{
+        "acknowledged" : true,
+        "insertedId" : ObjectId("5cfd437b60722072e2d5821f")
+}
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> 
+
+
+// as an example, you can also modify the object ID, and manually decide what to use as an ID
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> db.movieScratch.insertOne({_id: "tt0084726" ,title: "Star Trek II: The Wrath of Khan", year: 1982, imdb:"tt0084726"})
+{ "acknowledged" : true, "insertedId" : "tt0084726" }
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> 
+
+
+
+THE INSERTMANY AND INSERT ONE HAVE THE POWER TO CREATE A NEW COLLECTION IF IT DOESN'T EXIST. BE CAREFUL WHEN USING THE MONGO SHELL AS YOU MIGHT ACCIDENTALLY INSERT THE FILES TO THE WRONG/NEW COLLECTION
+#MongoDB Enterprise Cluster0-shard-0:PRIMARY> db.myMovies.insertMany([data in JSON format], {Options in JSON format ie order:false}}
+
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> db.myMovies.insertMany(
+...   [
+...     {
+...       "_id" : "tt0084726",
+...       "title" : "Star Trek II: The Wrath of Khan",
+...       "year" : 1982,
+...       "type" : "movie"
+...     },
+...     {
+...       "_id" : "tt0796366",
+...       "title" : "Star Trek",
+...       "year" : 2009,
+...       "type" : "movie"
+...     },
+...     {
+...       "_id" : "tt0084726",
+...       "title" : "Star Trek II: The Wrath of Khan",
+...       "year" : 1982,
+...       "type" : "movie"
+...     },
+...     {
+...       "_id" : "tt1408101",
+...       "title" : "Star Trek Into Darkness",
+...       "year" : 2013,
+...       "type" : "movie"
+...     },
+...     {
+...       "_id" : "tt0117731",
+...       "title" : "Star Trek: First Contact",
+...       "year" : 1996,
+...       "type" : "movie"
+...     }
+...   ],
+...   {
+...     ordered: false
+...   }
+... );
+2019-06-10T10:11:46.133-0230 E QUERY    [js] BulkWriteError: write error at item 2 in bulk operation :
+BulkWriteError({
+        "writeErrors" : [
+                {
+                        "index" : 2,
+                        "code" : 11000,
+                        "errmsg" : "E11000 duplicate key error collection: video.myMovies index: _id_ dup key: { : \"tt0084726\" }",
+                        "op" : {
+                                "_id" : "tt0084726",
+                                "title" : "Star Trek II: The Wrath of Khan",
+                                "year" : 1982,
+                                "type" : "movie"
+                        }
+                }
+        ],
+        "writeConcernErrors" : [ ],
+        "nInserted" : 4,
+        "nUpserted" : 0,
+        "nMatched" : 0,
+        "nModified" : 0,
+        "nRemoved" : 0,
+        "upserted" : [ ]
+})
+BulkWriteError@src/mongo/shell/bulk_api.js:369:48
+BulkWriteResult/this.toError@src/mongo/shell/bulk_api.js:333:24
+Bulk/this.execute@src/mongo/shell/bulk_api.js:1173:1
+DBCollection.prototype.insertMany@src/mongo/shell/crud_api.js:314:5
+@(shell):1:1
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> show collections
+movieDetails
+movieScratch
+myMovies
+
+
+
+# Searching for specific values
+#
+The following example, filters out the data from the movies collection in the video dataset, and only displays those movies with a Rating of PG-13 from the year 2009
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> db.movies.find({mpaaRating: "PG-13", year:2009} ).pretty()
+
+
+Now we are going to try an example of filtering by document. In other words, when we want to filter out documents embedded within other documents.
+In here, we use "dot" notation. In other words, to look for a document within a document, you would use documentparent.documentson.
+
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> show dbs
+100YWeatherSmall  0.128GB
+admin             0.000GB
+aggregations      0.067GB
+citibike          0.367GB
+city              0.002GB
+config            0.000GB
+coursera-agg      0.083GB
+local             0.940GB
+mflix             0.449GB
+results           0.000GB
+ships             0.001GB
+video             0.513GB
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> use 100YWeatherSmall
+switched to db 100YWeatherSmall
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> show collections
+data
+system.profile
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> db.data.find({"wind.direction.angle": 290}).pretty()
+
+
+
+# Limiting the number of fields you receive
+# You can limit the number of fields you receive by using the proyections syntax
+# The proyections must have a value of 1 to ONLY display specifics fields
+# The proyections must have a value of 0 to display all fields except the ones with the 0 value
+#
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> db.movies.find( {filter},{proyection: 1 or 0} )
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> db.movies.find( {genre: "Action, Adventure"},{title: 1} )
+{ "_id" : ObjectId("58c59c6a99d4ee0af9e0d117"), "title" : "Who Will Marry Mary?" }
+{ "_id" : ObjectId("58c59c6b99d4ee0af9e0d9c2"), "title" : "The New Exploits of Elaine" }
+{ "_id" : ObjectId("58c59c6b99d4ee0af9e0db62"), "title" : "The Ventures of Marguerite" }
+{ "_id" : ObjectId("58c59c6b99d4ee0af9e0dde5"), "title" : "The Iron Claw" }
+{ "_id" : ObjectId("58c59c6b99d4ee0af9e0dc25"), "title" : "Beatrice Fairfax" }
+{ "_id" : ObjectId("58c59c6b99d4ee0af9e0e28d"), "title" : "The Great Secret" }
+{ "_id" : ObjectId("58c59c6b99d4ee0af9e0e482"), "title" : "The Seven Pearls" }
+{ "_id" : ObjectId("58c59c6b99d4ee0af9e0e5f3"), "title" : "The Brass Bullet" }
+{ "_id" : ObjectId("58c59c6b99d4ee0af9e0e459"), "title" : "The Red Ace" }
+{ "_id" : ObjectId("58c59c6b99d4ee0af9e0e977"), "title" : "Wolves of Kultur" }
+{ "_id" : ObjectId("58c59c6b99d4ee0af9e0e8f3"), "title" : "Tarzan of the Apes" }
+{ "_id" : ObjectId("58c59c6b99d4ee0af9e0e71f"), "title" : "The Iron Test" }
+{ "_id" : ObjectId("58c59c6b99d4ee0af9e0e884"), "title" : "The Romance of Tarzan" }
+{ "_id" : ObjectId("58c59c6b99d4ee0af9e0ec74"), "title" : "Perils of Thunder Mountain" }
+{ "_id" : ObjectId("58c59c6b99d4ee0af9e0ea8d"), "title" : "The Fatal Fortune" }
+{ "_id" : ObjectId("58c59c6b99d4ee0af9e0f083"), "title" : "The Revenge of Tarzan" }
+{ "_id" : ObjectId("58c59c6b99d4ee0af9e0efa9"), "title" : "The Lost City" }
+{ "_id" : ObjectId("58c59c6b99d4ee0af9e0f0b7"), "title" : "The Screaming Shadow" }
+{ "_id" : ObjectId("58c59c6b99d4ee0af9e0f0cf"), "title" : "The Son of Tarzan" }
+{ "_id" : ObjectId("58c59c6b99d4ee0af9e0f1a1"), "title" : "The Adventures of Tarzan" }
+Type "it" for more
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> 
+
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> db.movies.find( {genre: "Action, Adventure"},{title: 1, _id: 0} )
+{ "title" : "Who Will Marry Mary?" }
+{ "title" : "The New Exploits of Elaine" }
+{ "title" : "The Ventures of Marguerite" }
+{ "title" : "The Iron Claw" }
+{ "title" : "Beatrice Fairfax" }
+{ "title" : "The Great Secret" }
+{ "title" : "The Seven Pearls" }
+{ "title" : "The Brass Bullet" }
+{ "title" : "The Red Ace" }
+{ "title" : "Wolves of Kultur" }
+{ "title" : "Tarzan of the Apes" }
+{ "title" : "The Iron Test" }
+{ "title" : "The Romance of Tarzan" }
+{ "title" : "Perils of Thunder Mountain" }
+{ "title" : "The Fatal Fortune" }
+{ "title" : "The Revenge of Tarzan" }
+{ "title" : "The Lost City" }
+{ "title" : "The Screaming Shadow" }
+{ "title" : "The Son of Tarzan" }
+{ "title" : "The Adventures of Tarzan" }
+Type "it" for more
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> 
+
+
+
+# As a side note, to find out how many queries match a certain criteria, you can use the count option, as shown in the following example
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> db.movieDetails.find( {"awards.nominations":2 , "awards.wins":2} ).count()
+12
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> 
+
+# Now we are going to search through values on arrays
+#
+
+This example would  show movies that ONLY have the actors Jeff Bridges and Tim Robbins in them, and in that order
+	MongoDB Enterprise Cluster0-shard-0:PRIMARY> db.movies.find({ "cast": ["Jeff Bridges", "Tim Robbins"]}).pretty()
+
+To query for instances that match at least one of the elements in the array
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> db.movies.find({ "cast": "Jeff Bridges","cast":"Tim Robbins"}).pretty()
+
+To query for instances that match a single element in an array
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> db.movies.find({ "cast": "Jeff Bridges"}).pretty()
+
+To query for instances that match a single element in a specific position in an array
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> db.movies.find({ "cast.0": "Jeff Bridges"}).pretty()
+
+
+### Updating fields
+#
+the updateOne document only updates the first document that matches our criteria. 
+
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> db.movieDetails.find( {"title": "The Martian"}, { poster: 1}).pretty()
+{ "_id" : ObjectId("5cfd3e6dfae440dee29b5e8d") }
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> db.movieDetails.updateOne( {"title": "The Martian"}, {$set:{"poster": "https://m.media-amazon.com/images/M/MV5BMTc2MTQ3MDA1Nl5BMl5BanBnXkFtZTgwODA3OTI4NjE@._V1_SY1000_CR0,0,675,1000_AL_.jpg" } } )
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 } # notice that update shows how many documents matched our search criteria, but it will always only update the first document that matched
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> db.movieDetails.find( {"title": "The Martian"}, { poster: 1}).pretty()
+{
+        "_id" : ObjectId("5cfd3e6dfae440dee29b5e8d"),
+        "poster" : "https://m.media-amazon.com/images/M/MV5BMTc2MTQ3MDA1Nl5BMl5BanBnXkFtZTgwODA3OTI4NjE@._V1_SY1000_CR0,0,675,1000_AL_.jpg"
+}
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> 
+
+You must always have an operator for the update queries. A full list of the update operators can be found in the MongoDB doc pages: 
+https://docs.mongodb.com/manual/reference/operator/update/ 
+
+Fields Operators
+Name	Description
+$currentDate	Sets the value of a field to current date, either as a Date or a Timestamp.
+$inc	Increments the value of the field by the specified amount.
+$min	Only updates the field if the specified value is less than the existing field value.
+$max	Only updates the field if the specified value is greater than the existing field value.
+$mul	Multiplies the value of the field by the specified amount.
+$rename	Renames a field.
+$set	Sets the value of a field in a document.
+$setOnInsert	Sets the value of a field if an update results in an insert of a document. Has no effect on update operations that modify existing documents.
+$unset	Removes the specified field from a document.
+
+Array Operators
+Name	Description
+$	Acts as a placeholder to update the first element that matches the query condition.
+$[]	Acts as a placeholder to update all elements in an array for the documents that match the query condition.
+$[<identifier>]	Acts as a placeholder to update all elements that match the arrayFilters condition for the documents that match the query condition.
+$addToSet	Adds elements to an array only if they do not already exist in the set.
+$pop	Removes the first or last item of an array.
+$pull	Removes all array elements that match a specified query.
+$push	Adds an item to an array.
+$pullAll	Removes all matching values from an array.
+
+Modifiers
+Name	Description
+$each	Modifies the $push and $addToSet operators to append multiple items for array updates.
+$position	Modifies the $push operator to specify the position in the array to add elements.
+$slice	Modifies the $push operator to limit the size of updated arrays.
+$sort	Modifies the $push operator to reorder documents stored in an array.
+
+Bitwise
+Name	Description
+$bit	Performs bitwise AND, OR, and XOR updates of integer values.
+
+
+Other examples with the updateOne method
+With the following command, we updated the reviews and userReviews fields in the tomato object within the movieDetails database:
+db.movieDetails.updateOne( { "title": "The Martian" } , { $inc : {"tomato.reviews": 3, "tomato.userReviews": 25} } ) 
+
+
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> db.movieDetails.find( {"title": "The Martian"}, {title: 1, tomato: 1} ).pretty()
+{
+        "_id" : ObjectId("5cfd3e6dfae440dee29b5e8d"),
+        "title" : "The Martian",
+        "tomato" : {
+                "meter" : 93,
+                "image" : "certified",
+                "rating" : 7.9,
+                "reviews" : 280,
+                "fresh" : 261,
+                "consensus" : "Smart, thrilling, and surprisingly funny, The Martian offers a faithful adaptation of the bestselling book that brings out the best in leading man Matt Damon and director Ridley Scott.",
+                "userMeter" : 92,
+                "userRating" : 4.3,
+                "userReviews" : 104999
+        }
+}
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> db.movieDetails.updateOne( { "title": "The Martian" } , { $inc : {"tomato.reviews": 3, "tomato.userReviews": 25} } )
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> db.movieDetails.updateOne( { "title": "The Martian" } , { $inc : {"tomato.reviews": 3, "tomato.userReviews": 25} } )
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> db.movieDetails.find( {"title": "The Martian"}, {title: 1, tomato: 1} ).pretty()
+{
+        "_id" : ObjectId("5cfd3e6dfae440dee29b5e8d"),
+        "title" : "The Martian",
+        "tomato" : {
+                "meter" : 93,
+                "image" : "certified",
+                "rating" : 7.9,
+                "reviews" : 286,
+                "fresh" : 261,
+                "consensus" : "Smart, thrilling, and surprisingly funny, The Martian offers a faithful adaptation of the bestselling book that brings out the best in leading man Matt Damon and director Ridley Scott.",
+                "userMeter" : 92,
+                "userRating" : 4.3,
+                "userReviews" : 105049
+        }
+}
+MongoDB Enterprise Cluster0-shard-0:PRIMARY> 
+ 
+
+#######################################################################
+# Update Many
+
+update many will update all files that match a certain criteria. 
+
+here is an example:
+db.database.updateMany({filter},{ the values that we are going to update})
+db.movieDetails.updateMany({rated: null},{ $unset: {rated: ""} })
+	* since we are using the unset option, it doesn't matter what we put after the rated. It will just get rid of that field
+
+
+
+
