@@ -265,6 +265,7 @@ MongoDB Enterprise Cluster0-shard-0:PRIMARY> db.movies.find({ "cast.0": "Jeff Br
 #
 the updateOne document only updates the first document that matches our criteria. 
 
+
 MongoDB Enterprise Cluster0-shard-0:PRIMARY> db.movieDetails.find( {"title": "The Martian"}, { poster: 1}).pretty()
 { "_id" : ObjectId("5cfd3e6dfae440dee29b5e8d") }
 MongoDB Enterprise Cluster0-shard-0:PRIMARY> db.movieDetails.updateOne( {"title": "The Martian"}, {$set:{"poster": "https://m.media-amazon.com/images/M/MV5BMTc2MTQ3MDA1Nl5BMl5BanBnXkFtZTgwODA3OTI4NjE@._V1_SY1000_CR0,0,675,1000_AL_.jpg" } } )
@@ -368,6 +369,40 @@ db.database.updateMany({filter},{ the values that we are going to update})
 db.movieDetails.updateMany({rated: null},{ $unset: {rated: ""} })
 	* since we are using the unset option, it doesn't matter what we put after the rated. It will just get rid of that field
 
+
+
+# updateserts
+upserts makes sure that if a document already exists, it is replaced by the new content. In otherwords, rather than fetching the data to see if the document exists and then updating it, we just create a new one and overwrite any old one that might exist. 
+if the document doesn't exist, then simply create a new one
+
+
+
+######################################################################
+# Replace one
+
+The mongo shell is essentially a JavaScript interpreter. I copied the JavaScript they used in the video. 
+
+****show dbs
+****use video
+
+    let filter = {"title": "House, M.D., Season Four: New Beginnings"}
+    let doc = db.movieDetails.findOne( filter);
+    doc.poster;
+    doc.poster = "https://www.imdb.com/title/tt1329164/mediaviewer/rm2619416576"
+    doc.genres;
+    doc.genres.push("TV Series"); //push because it is an array method
+    db.movieDetails.replaceOne(filter, doc)
+
+# Deleting documents
+
+We have 2 options:
+    deleteOne(filter)
+    deleteMany(filter)
+For example:
+    db.reviews.deleteOne({_id: ObjectId("5d067bbf6225af0ee83573b3")})
+    db.reviews.deleteMany({"reviewer_id": 759723314})
+
+# Chapter 3 - More advanced Topics 
 
 
 
