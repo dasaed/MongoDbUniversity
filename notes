@@ -404,5 +404,164 @@ For example:
 
 # Chapter 3 - More advanced Topics 
 
+Comparison Operators
+
+
+Name	Description
+$eq	Matches values that are equal to a specified value.
+$gt	Matches values that are greater than a specified value.
+$gte	Matches values that are greater than or equal to a specified value.
+$in	Matches any of the values specified in an array.
+$lt	Matches values that are less than a specified value.
+$lte	Matches values that are less than or equal to a specified value.
+$ne	Matches all values that are not equal to a specified value.
+$nin	Matches none of the values specified in an array.
+
+Example:
+db.movieDetails.find({runtime: {$gte: 90, $lte: 120} }, {_id:0, "title": 1, "runtime":1})
+db.movieDetails.find({runtime: {$gte: 180}, "tomato.meter":{ $gte: 95} }, {_id:0, "title": 1, "runtime":1})
+db.movieDetails.find({rated: {$ne: "UNRATED"}}, {_id:0, title:1, rated:1}})
+db.movieDetails.find({rated: {$in: ["G", "PG"]}}, {_id:0, title:1, rated:1})
+db.movieDetails.find({runtime: {$gt: 90}})
+db.movieDetails.find({runtime: {$gt: 90}}, {_id: 0, title: 1, runtime: 1})
+db.movieDetails.find({runtime: {$gt: 90, $lt: 120}}, {_id: 0, title: 1, runtime: 1})
+db.movieDetails.find({runtime: {$gte: 90, $lte: 120}}, {_id: 0, title: 1, runtime: 1})
+db.movieDetails.find({runtime: {$gte: 180}, "tomato.meter": 100}, {_id: 0, title: 1, runtime: 1})
+db.movieDetails.find({rated: {$ne: "UNRATED"}}, {_id: 0, title: 1, rated: 1})
+db.movieDetails.find({rated: {$in: ["G", "PG"]}}, {_id: 0, title: 1, rated: 1})
+db.movieDetails.find({rated: {$in: ["G", "PG", "PG-13"]}}, {_id: 0, title: 1, rated: 1}).pretty()
+db.movieDetails.find({rated: {$in: ["R", "PG-13"]}}, {_id: 0, title: 1, rated: 1}).pretty()
+
+# Element operators
+This operators are to see if fields exist, and if the types are the same
+
+db.moviesDetails.find({mpaaRating: {$exists: true}})
+
+db.moviesDetails.find({mpaaRating: {$exists: false}})
+
+db.movieDetails.find({mpaaRating: null})
+
+db.movieDetails.find({})
+
+db.movies.find({viewerRating: {$type: "int"}}).pretty()
+
+db.movies.find({viewerRating: {$type: "double"}}).pretty()
+
+db.movies.find({mpaaRating: {$exists: true}})
+
+in the 100YWdataCollection
+db.data.find( {"atmosphericPressureChange": {$exists: false}} ).count()
+
+# Logical Operators
+
+Name	Description
+$and	Joins query clauses with a logical AND returns all documents that match the conditions of both clauses.
+$not	Inverts the effect of a query expression and returns documents that do not match the query expression.
+$nor	Joins query clauses with a logical NOR returns all documents that fail to match both clauses.
+$or	Joins query clauses with a logical OR returns all documents that match the conditions of either clause.
+
+Examples:
+
+db.movieDetails.find({$or: [{"tomato.meter": {$gt: 95}},                               
+                            {"metacritic": {$gt: 88}}]},
+                     {_id: 0, title: 1, "tomato.meter": 1, "metacritic": 1})
+
+db.movieDetails.find({$and: [{"tomato.meter": {$gt: 95}},                               
+                            {"metacritic": {$gt: 88}}]},
+                     {_id: 0, title: 1, "tomato.meter": 1, "metacritic": 1})
+
+db.movieDetails.find({"tomato.meter": {$gt: 95},                               
+                      "metacritic": {$gt: 88}},
+                     {_id: 0, title: 1, "tomato.meter": 1, "metacritic": 1})
+
+db.movieDetails.find({$and: [{"metacritic": {$ne: null}},
+                             {"metacritic": {$exists: true}}]},
+                          {_id: 0, title: 1, "metacritic": 1})
+
+db.movieDetails.find({$and: [{"metacritic": null},
+                             {"metacritic": {$exists: true}}]},
+                     {_id: 0, title: 1, "metacritic": 1})
+
+in ships >> shipwrecks
+db.shipwrecks.find( {$or: [ {watlev: "always dry"},{depth: 0}]}).count()
+
+
+
+# Array Operators:
+
+Name	Description
+$all	Matches arrays that contain all elements specified in the query.
+$elemMatch	Selects documents if element in the array field matches all the specified $elemMatch conditions.
+$size	Selects documents if the array field is a specified size.
+
+Examples:
+db.movieDetails.find({genres: {$all: ["Comedy", "Drama"]}},{_id: 0, title: 1, genres: 1})
+db.movieDetails.find({genres: {$all: ["Comedy", "Crime", "Drama"]}}, {_id: 0, title: 1, genres: 1}).pretty()
+
+in 100YWeatherSmall
+db.data.find( { sections: {$all: ["AG1","MD1","OA1"]}}, {_id:0,sections:1} ).count()
+
+db.movieDetails.find({countries: {$size: 1}}).pretty() # shows movies that were filmed in 1 country
+db.movieDetails.find({countries: {$size: 3}},{_id:0, title:1, countries:1})  # shows movies that were filled in 3 countries
+
+
+
+# Element Match
+
+boxOffice: [ { "country": "USA", "revenue": 228.4 },
+             { "country": "Australia", "revenue": 19.6 },
+             { "country": "UK", "revenue": 33.9 },
+             { "country": "Germany", "revenue": 16.2 },
+             { "country": "France", "revenue": 19.8 } ]
+db.movieDetails.find({"boxOffice.country": "Germany", "boxOffice.revenue": {$gt: 17}})
+db.movieDetails.find({"boxOffice.country": "Germany", "boxOffice.revenue": {$gt: 228}})
+use video
+let martian = db.movieDetails.findOne({title: "The Martian"})
+martian
+delete martian._id;
+martian
+martian.boxOffice = [
+    {"country": "USA", "revenue": 228.4},
+    {"country": "Australia", "revenue": 19.6},
+    {"country": "UK", "revenue": 33.9},
+    {"country": "Germany", "revenue": 16.2},
+    {"country": "France", "revenue": 19.8}
+]
+db.movieDetails.insertOne(martian);
+db.movieDetails.find({boxOffice: {$elemMatch: {"country": "Germany", "revenue": {$gt: 17}}}})
+db.movieDetails.find({boxOffice: {$elemMatch: {"country": "Germany", "revenue": {$gt: 16}}}})
+
+The CHALLENGE QUESTION
+db.scores.find( { results: {$elemMatch: {$gte: 70, $lt:80}}  } , { _id:0, results:1} ).count()
+
+# Regex
+#
+
+
+Name	Description
+$expr	Allows use of aggregation expressions within the query language.
+$jsonSchema	Validate documents against the given JSON Schema.
+$mod	Performs a modulo operation on the value of a field and selects documents with a specified result.
+$regex	Selects documents where values match a specified regular expression.
+$text	Performs text search.
+$where	Matches documents that satisfy a JavaScript expression.
+
+
+db.movieDetails.find({}, {_id: 0, "title": 1, "awards.text": 1}).pretty()
+db.movieDetails.find({"awards.text": {$regex: /^Won.* /}}, {_id: 0, title: 1, "awards.text": 1}).pretty()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
